@@ -28,6 +28,8 @@ namespace bo_macro
         [DllImport("user32.dll")]
         private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
         [DllImport("user32")]
+        public static extern int SetWindowPos(IntPtr hwnd, int hWndInsertAfter, int x, int y, int cx, int cy, int wFlags);
+        [DllImport("user32")]
         public static extern Int32 GetCursorPos(out POINT pt);
         public struct POINT
         {
@@ -53,54 +55,45 @@ namespace bo_macro
         private static extern IntPtr ImageSearch(int x, int y, int right, int bottom, [MarshalAs(UnmanagedType.LPStr)]string imagePath);
 
         public IntPtr hwnd;
-        Thread checkThread;
+        Thread connectThread;
         public Form1()
         {
             InitializeComponent();
         }
         private void Form1_Load1(object sender, EventArgs e)
         {
-            //string test = "蒼藍の誓い-ブルーオースWindows版";
-            //int hwnds = FindWindow(null, test);
-            int hwnds = FindWindow("UnityWndClass", null);
-            hwnd = new IntPtr(hwnds);
-            if (hwnd.Equals((IntPtr)0))
-            {
-                MessageBox.Show("실패");
-                return;
-            }
-            checkThread = new Thread(new ThreadStart(resolution));
-            checkThread.Start();
+            connectThread = new Thread(new ThreadStart(connect));
+            connectThread.Start();
         }
         private void button1_Click(object sender, EventArgs e)
-        {                       
-                Bitmap cap = PrintWindow(hwnd);
-                RECT brt;
-                GetWindowRect(hwnd, out brt);
-                cap = crop(cap, new Rectangle(600, 20, 500, 100));
-                var ocr = new TesseractEngine("./tessdata", "jpn", EngineMode.Default);
-                var texts = ocr.Process(cap);
-                MessageBox.Show(texts.GetText());
-                Form2 newForm = new Form2(cap);
-                newForm.Show();
+        {
+            /*Bitmap cap = PrintWindow(hwnd);
+            RECT brt;
+            GetWindowRect(hwnd, out brt);
+            cap = crop(cap, new Rectangle(600, 20, 500, 100));
+            var ocr = new TesseractEngine("./tessdata", "jpn", EngineMode.Default);
+            var texts = ocr.Process(cap);
+            MessageBox.Show(texts.GetText());
+            Form2 newForm = new Form2(cap);
+            newForm.Show();*/
+            SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);     
+            //image search algorhtm
 
-                //image search algorhtm
-                
-                /*ShowWindowAsync(hwnd, 1);
-                SetForegroundWindow(hwnd);
-                Thread.Sleep(100);
-                string[] search = UseImageSearch("*70 img\\gas.png", hwnd);
-                if (search == null)
-                    return;                   //서치실패의 경우 return
-                int[] search_ = new int[search.Length];
-                for (int j = 0; j < search.Length; j++)
-                {
-                    search_[j] = Convert.ToInt32(search[j]);
-                }
-                SetCursorPos(search_[1] + (search_[3]/2), search_[2] + (search_[4]/2));
-                SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
-                SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);*/
-            
+            /*ShowWindowAsync(hwnd, 1);
+            SetForegroundWindow(hwnd);
+            Thread.Sleep(100);
+            string[] search = UseImageSearch("*70 img\\gas.png", hwnd);
+            if (search == null)
+                return;                   //서치실패의 경우 return
+            int[] search_ = new int[search.Length];
+            for (int j = 0; j < search.Length; j++)
+            {
+                search_[j] = Convert.ToInt32(search[j]);
+            }
+            SetCursorPos(search_[1] + (search_[3]/2), search_[2] + (search_[4]/2));
+            SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
+            SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);*/
+
         }
         public static Bitmap PrintWindow(IntPtr hwnd)
         {
@@ -163,31 +156,32 @@ namespace bo_macro
               MessageBox.Show(i + "번째 " + data[i]);*/
             return data;
         }       
-        private void resolution()
+        private void connect()
         {
-            RECT brt;
-            while (true)
+            while(true)
             {
-                GetWindowRect(hwnd, out brt);
-                try
+                //string test = "蒼藍の誓い-ブルーオースWindows版";
+                //int hwnds = FindWindow(null, test);
+                int hwnds = FindWindow("UnityWndClass", null);
+                hwnd = new IntPtr(hwnds);
+                if (hwnd.Equals((IntPtr)0))
                 {
-                    targetWidth.Text = (brt.Right - brt.Left).ToString();
-                    targetHeight.Text = (brt.Bottom - brt.Top).ToString();
+                    //MessageBox.Show("실패");
+                    currentStatus.Text = "연결 실패!";
                 }
-                catch
+                else
                 {
-
+                    currentStatus.Text = "연결 성공!";
+                    return;
                 }
-            } 
+            }
+            
         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (checkThread.IsAlive == true)
-                checkThread.Abort();
+            if (connectThread.IsAlive == true)
+                connectThread.Abort();
         }
-        private void Exit_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+        
     }
 }
