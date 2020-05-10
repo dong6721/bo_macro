@@ -56,6 +56,8 @@ namespace bo_macro
 
         public IntPtr hwnd;
         Thread connectThread;
+        Thread loopThread;
+        public delegate void DelegateStatusText(string strText);
         public Form1()
         {
             InitializeComponent();
@@ -63,6 +65,7 @@ namespace bo_macro
         private void Form1_Load1(object sender, EventArgs e)
         {
             connectThread = new Thread(new ThreadStart(connect));
+            loopThread = new Thread(new ThreadStart(loop));
             connectThread.Start();
         }
         private void button1_Click(object sender, EventArgs e)
@@ -76,7 +79,10 @@ namespace bo_macro
             MessageBox.Show(texts.GetText());
             Form2 newForm = new Form2(cap);
             newForm.Show();*/
-            SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);     
+
+            //SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);     
+
+
             //image search algorhtm
 
             /*ShowWindowAsync(hwnd, 1);
@@ -156,32 +162,117 @@ namespace bo_macro
               MessageBox.Show(i + "번째 " + data[i]);*/
             return data;
         }       
+
+        private void setStatus(string text)
+        {
+            if(currentStatus.InvokeRequired)
+            {
+                var d = new DelegateStatusText(setStatus);
+                currentStatus.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                currentStatus.Text = text;
+            }
+        }
         private void connect()
         {
             while(true)
             {
+                Thread.Sleep(1000);
                 //string test = "蒼藍の誓い-ブルーオースWindows版";
                 //int hwnds = FindWindow(null, test);
                 int hwnds = FindWindow("UnityWndClass", null);
                 hwnd = new IntPtr(hwnds);
-                if (hwnd.Equals((IntPtr)0))
+                try
                 {
-                    //MessageBox.Show("실패");
-                    currentStatus.Text = "연결 실패!";
+                    if (hwnd.Equals((IntPtr)0))
+                    {
+                        setStatus("연결 실패!");
+                    }
+                    else
+                    {
+                        setStatus("연결 성공!");
+                        return;
+                    }
                 }
+                catch
+                {
+                    //MessageBox.Show("Label Set Error!");
+                }
+                
+            }            
+        }
+        private void loop()
+        {
+            SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);
+            string filePath = "*50 img\\";
+            while (true)
+            {
+                //image search algorhtm
+                Thread.Sleep(2000);
+
+                ShowWindowAsync(hwnd, 1);
+                SetForegroundWindow(hwnd);
+                Thread.Sleep(100);
+
+                string[] search = null;
+                String FolderName = "img";
+                System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(FolderName);
+                foreach (System.IO.FileInfo File in di.GetFiles())
+                {
+                    if (File.Extension.ToLower().CompareTo(".png") == 0)
+                    {
+                        String FileNameOnly = File.Name.Substring(0, File.Name.Length);
+                        //String FullFileName = File.FullName;
+                        string temp = filePath + FileNameOnly;
+                        search = UseImageSearch(temp, hwnd);
+                        if (search == null)
+                            continue;
+                        else
+                            break;
+                    }
+                }
+                if (search == null)
+                    continue;
                 else
                 {
-                    currentStatus.Text = "연결 성공!";
-                    return;
-                }
+                    int[] search_ = new int[search.Length];
+                    for (int j = 0; j < search.Length; j++)
+                    {
+                        search_[j] = Convert.ToInt32(search[j]);
+                    }
+                    SetCursorPos(search_[1] + (search_[3] / 2), search_[2] + (search_[4] / 2));
+                    SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
+                    SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
+                }               
             }
-            
         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (connectThread.IsAlive == true)
                 connectThread.Abort();
+            if (loopThread.IsAlive == true)
+                loopThread.Abort();
         }
-        
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch(e.KeyCode)
+            {
+                case Keys.F5:
+                    if (loopThread.IsAlive == true)
+                    {
+                        loopThread.Abort();
+                        loopThread = new Thread(new ThreadStart(loop));
+                    }                   
+                    else
+                        loopThread.Start();
+                    break;
+                default:
+                    //nothing;
+                    break;
+            }
+        }
     }
 }
