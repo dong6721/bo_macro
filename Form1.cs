@@ -49,6 +49,8 @@ namespace bo_macro
         }
         [DllImport("user32")]
         public static extern Int32 SendMessage(IntPtr hWnd, Int32 uMsg, IntPtr WParam, IntPtr LParam);
+        [DllImport("user32")]
+        public static extern IntPtr GetForegroundWindow();
         [DllImport("gdi32.dll")]
         static extern IntPtr CreateRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
         [DllImport("ImageSearchDLL.dll")]
@@ -80,7 +82,38 @@ namespace bo_macro
             Form2 newForm = new Form2(cap);
             newForm.Show();*/
 
-            //SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);     
+            //set window position setting
+            ShowWindowAsync(hwnd, 1);
+            IntPtr basehwnd = GetForegroundWindow();
+            SetForegroundWindow(hwnd);
+            RECT brt;
+            GetWindowRect(hwnd, out brt);
+            try
+            {
+                SetWindowPos(hwnd, 0, 0, 0, 1280, 750, 0x2);                
+                Thread.Sleep(40);
+                string[] search = UseImageSearch("*70 img\\2.png", hwnd);
+                if (search == null)
+                    return;                   //서치실패의 경우 return
+                int[] search_ = new int[search.Length];
+                for (int j = 0; j < search.Length; j++)
+                {
+                    search_[j] = Convert.ToInt32(search[j]);
+                }
+                SetCursorPos(search_[1] + (search_[3] / 2), search_[2] + (search_[4] / 2));
+                SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
+                SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);                
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+                SetWindowPos(hwnd, 0, 0, 0, brt.Right - brt.Left, brt.Bottom - brt.Top, 0x2);
+                SetForegroundWindow(basehwnd);
+            }
+            
 
 
             //image search algorhtm
@@ -161,7 +194,7 @@ namespace bo_macro
             for(int i=0; i<5; i++)
               MessageBox.Show(i + "번째 " + data[i]);*/
             return data;
-        }       
+        }
 
         private void setStatus(string text)
         {
@@ -179,7 +212,7 @@ namespace bo_macro
         {
             while(true)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
                 //string test = "蒼藍の誓い-ブルーオースWindows版";
                 //int hwnds = FindWindow(null, test);
                 int hwnds = FindWindow("UnityWndClass", null);
@@ -193,7 +226,6 @@ namespace bo_macro
                     else
                     {
                         setStatus("연결 성공!");
-                        return;
                     }
                 }
                 catch
@@ -214,38 +246,49 @@ namespace bo_macro
 
                 ShowWindowAsync(hwnd, 1);
                 SetForegroundWindow(hwnd);
-                Thread.Sleep(100);
-
-                string[] search = null;
-                String FolderName = "img";
-                System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(FolderName);
-                foreach (System.IO.FileInfo File in di.GetFiles())
+                Thread.Sleep(40);
+                try
                 {
-                    if (File.Extension.ToLower().CompareTo(".png") == 0)
+                    string[] search = null;
+                    String FolderName = "img";
+                    System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(FolderName);
+                    foreach (System.IO.FileInfo File in di.GetFiles())
                     {
-                        String FileNameOnly = File.Name.Substring(0, File.Name.Length);
-                        //String FullFileName = File.FullName;
-                        string temp = filePath + FileNameOnly;
-                        search = UseImageSearch(temp, hwnd);
-                        if (search == null)
-                            continue;
-                        else
-                            break;
+                        if (File.Extension.ToLower().CompareTo(".png") == 0)
+                        {
+                            String FileNameOnly = File.Name.Substring(0, File.Name.Length);
+                            //String FullFileName = File.FullName;
+                            string temp = filePath + FileNameOnly;
+                            search = UseImageSearch(temp, hwnd);
+                            if (search == null)
+                                continue;
+                            else
+                                break;
+                        }
+                    }
+                    if (search == null)
+                        continue;
+                    else
+                    {
+                        int[] search_ = new int[search.Length];
+                        for (int j = 0; j < search.Length; j++)
+                        {
+                            search_[j] = Convert.ToInt32(search[j]);
+                        }
+                        SetCursorPos(search_[1] + (search_[3] / 2), search_[2] + (search_[4] / 2));
+                        SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
+                        SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
                     }
                 }
-                if (search == null)
-                    continue;
-                else
+                catch
                 {
-                    int[] search_ = new int[search.Length];
-                    for (int j = 0; j < search.Length; j++)
-                    {
-                        search_[j] = Convert.ToInt32(search[j]);
-                    }
-                    SetCursorPos(search_[1] + (search_[3] / 2), search_[2] + (search_[4] / 2));
-                    SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
-                    SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
-                }               
+
+                }
+                finally
+                {
+
+                }
+                         
             }
         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
