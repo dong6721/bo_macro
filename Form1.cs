@@ -72,18 +72,21 @@ namespace bo_macro
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            /*Bitmap cap = PrintWindow(hwnd);
+            ShowWindowAsync(hwnd, 1);
+            SetWindowPos(hwnd, 0, 0, 0, 1280, 750, 0x2);           
+
+            Bitmap cap = PrintWindow(hwnd);
             RECT brt;
             GetWindowRect(hwnd, out brt);
-            cap = crop(cap, new Rectangle(600, 20, 500, 100));
-            var ocr = new TesseractEngine("./tessdata", "jpn", EngineMode.Default);
+            cap = crop(cap, new Rectangle(770, 30, 80, 50));
+            var ocr = new TesseractEngine("./tessdata", "eng", EngineMode.TesseractAndCube);
             var texts = ocr.Process(cap);
             MessageBox.Show(texts.GetText());
             Form2 newForm = new Form2(cap);
-            newForm.Show();*/
+            newForm.Show();
 
             //set window position setting
-            ShowWindowAsync(hwnd, 1);
+            /*ShowWindowAsync(hwnd, 1);
             IntPtr basehwnd = GetForegroundWindow();
             SetForegroundWindow(hwnd);
             RECT brt;
@@ -110,10 +113,12 @@ namespace bo_macro
             }
             finally
             {
-                SetWindowPos(hwnd, 0, 0, 0, brt.Right - brt.Left, brt.Bottom - brt.Top, 0x2);
+                //SetWindowPos(hwnd, 0, 0, 0, brt.Right - brt.Left, brt.Bottom - brt.Top, 0x2);
                 SetForegroundWindow(basehwnd);
-            }
+            }*/
             
+            //set scroll
+
 
 
             //image search algorhtm
@@ -139,7 +144,7 @@ namespace bo_macro
             Rectangle rc = Rectangle.Empty;
             Graphics gfxWin = Graphics.FromHwnd(hwnd);
             rc = Rectangle.Round(gfxWin.VisibleClipBounds);
-            Bitmap bmp = new Bitmap(rc.Width, rc.Height, PixelFormat.Format32bppArgb);
+            Bitmap bmp = new Bitmap(rc.Width, rc.Height + 30, PixelFormat.Format32bppArgb);
             Graphics gfxBmp = Graphics.FromImage(bmp);
             IntPtr hdcBitmap = gfxBmp.GetHdc();
             bool succeeded = PrintWindow(hwnd, hdcBitmap, 2);
