@@ -11,6 +11,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Tesseract;
 using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 namespace bo_macro
 {
@@ -51,6 +52,8 @@ namespace bo_macro
         public static extern Int32 SendMessage(IntPtr hWnd, Int32 uMsg, IntPtr WParam, IntPtr LParam);
         [DllImport("user32")]
         public static extern IntPtr GetForegroundWindow();
+        [DllImport("user32")]
+        static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc callback, IntPtr hInstance, uint threadId);
         [DllImport("gdi32.dll")]
         static extern IntPtr CreateRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
         [DllImport("ImageSearchDLL.dll")]
@@ -60,6 +63,11 @@ namespace bo_macro
         Thread connectThread;
         Thread loopThread;
         public delegate void DelegateStatusText(string strText);
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        private const int WH_KEYBOARD_LL = 13;
+        private const int WM_KEYDOWN = 0x100;
+        private const int WM_ACTIVATEAPP = 0x001C;
+        private bool appActive = true;
         public Form1()
         {
             InitializeComponent();
@@ -73,17 +81,18 @@ namespace bo_macro
         private void button1_Click(object sender, EventArgs e)
         {
             ShowWindowAsync(hwnd, 1);
-            SetWindowPos(hwnd, 0, 0, 0, 1280, 750, 0x2);           
+            SetWindowPos(hwnd, 0, 0, 0, 1280, 750, 0x2);
 
-            Bitmap cap = PrintWindow(hwnd);
+            /*Bitmap cap = PrintWindow(hwnd);
             RECT brt;
             GetWindowRect(hwnd, out brt);
-            cap = crop(cap, new Rectangle(770, 30, 80, 50));
-            var ocr = new TesseractEngine("./tessdata", "eng", EngineMode.TesseractAndCube);
+            //cap = crop(cap, new Rectangle(770, 30, 80, 50));
+            cap = crop(cap, new Rectangle(200, 130, 30, 270));      //new 함선
+            var ocr = new TesseractEngine("./tessdata", "jpn", EngineMode.Default);
             var texts = ocr.Process(cap);
             MessageBox.Show(texts.GetText());
             Form2 newForm = new Form2(cap);
-            newForm.Show();
+            newForm.Show();*/
 
             //set window position setting
             /*ShowWindowAsync(hwnd, 1);
@@ -116,10 +125,8 @@ namespace bo_macro
                 //SetWindowPos(hwnd, 0, 0, 0, brt.Right - brt.Left, brt.Bottom - brt.Top, 0x2);
                 SetForegroundWindow(basehwnd);
             }*/
+
             
-            //set scroll
-
-
 
             //image search algorhtm
 
@@ -136,8 +143,29 @@ namespace bo_macro
             }
             SetCursorPos(search_[1] + (search_[3]/2), search_[2] + (search_[4]/2));
             SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
-            SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);*/
+            SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
+            */
+        }
+        [System.Security.Permissions.PermissionSet(System.Security.Permissions.SecurityAction.Demand, Name = "FullTrust")]
+        protected override void WndProc(ref Message m)
+        {
+            // Listen for operating system messages.
+            switch (m.Msg)
+            {
+                // The WM_ACTIVATEAPP message occurs when the application
+                // becomes the active application or becomes inactive.
+                case WM_ACTIVATEAPP:
+                    // The WParam value identifies what is occurring.
+                    appActive = (((int)m.WParam != 0));
+                    // Invalidate to get new text painted.
+                    this.Invalidate();
 
+                    break;
+                case 0x0100:
+                    MessageBox.Show("test");
+                    break;
+            }
+            base.WndProc(ref m);
         }
         public static Bitmap PrintWindow(IntPtr hwnd)
         {
@@ -251,7 +279,7 @@ namespace bo_macro
 
                 ShowWindowAsync(hwnd, 1);
                 SetForegroundWindow(hwnd);
-                Thread.Sleep(40);
+                //Thread.Sleep(40);
                 try
                 {
                     string[] search = null;
