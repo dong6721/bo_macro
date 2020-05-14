@@ -52,8 +52,14 @@ namespace bo_macro
         public static extern Int32 SendMessage(IntPtr hWnd, Int32 uMsg, IntPtr WParam, IntPtr LParam);
         [DllImport("user32")]
         public static extern IntPtr GetForegroundWindow();
-        [DllImport("user32")]
+        [DllImport("user32.dll")]
         static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc callback, IntPtr hInstance, uint threadId);
+        [DllImport("user32.dll")]
+        static extern bool UnhookWindowsHookEx(IntPtr hInstance);
+        [DllImport("user32.dll")]
+        static extern IntPtr CallNextHookEx(IntPtr idHook, int nCode, int wParam, IntPtr lParam);
+        [DllImport("kernel32.dll")]
+        static extern IntPtr LoadLibrary(string lpFileName);
         [DllImport("gdi32.dll")]
         static extern IntPtr CreateRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
         [DllImport("ImageSearchDLL.dll")]
@@ -63,11 +69,14 @@ namespace bo_macro
         Thread connectThread;
         Thread loopThread;
         public delegate void DelegateStatusText(string strText);
+        public delegate void Delegatecall_loop_thread();
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x100;
-        private const int WM_ACTIVATEAPP = 0x001C;
-        private bool appActive = true;
+        public static bool loop_thread=false;
+        private LowLevelKeyboardProc _proc = hookProc;
+        private static IntPtr hhook = IntPtr.Zero;
+
         public Form1()
         {
             InitializeComponent();
@@ -77,6 +86,8 @@ namespace bo_macro
             connectThread = new Thread(new ThreadStart(connect));
             loopThread = new Thread(new ThreadStart(loop));
             connectThread.Start();
+            loopThread.Start();
+            SetHook();
         }
         private void button1_Click(object sender, EventArgs e)
         {
@@ -146,27 +157,33 @@ namespace bo_macro
             SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
             */
         }
-        [System.Security.Permissions.PermissionSet(System.Security.Permissions.SecurityAction.Demand, Name = "FullTrust")]
-        protected override void WndProc(ref Message m)
-        {
-            // Listen for operating system messages.
-            switch (m.Msg)
-            {
-                // The WM_ACTIVATEAPP message occurs when the application
-                // becomes the active application or becomes inactive.
-                case WM_ACTIVATEAPP:
-                    // The WParam value identifies what is occurring.
-                    appActive = (((int)m.WParam != 0));
-                    // Invalidate to get new text painted.
-                    this.Invalidate();
 
-                    break;
-                case 0x0100:
-                    MessageBox.Show("test");
-                    break;
-            }
-            base.WndProc(ref m);
+        //hooking
+        public void SetHook()
+        {
+            IntPtr hInstance = LoadLibrary("User32");
+            hhook = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, hInstance, 0);
         }
+        public static void UnHook()
+        {
+            UnhookWindowsHookEx(hhook);
+        }
+        public static IntPtr hookProc(int code, IntPtr wParam, IntPtr lParam)
+        {
+            if (code >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            {
+                int vkCode = Marshal.ReadInt32(lParam);
+                if (vkCode.ToString() == "116")     //F5 = 116
+                {
+                    loop_thread = !loop_thread;
+                }
+                return CallNextHookEx(hhook, code, (int)wParam, lParam);                
+            }
+            else
+                return CallNextHookEx(hhook, code, (int)wParam, lParam);
+        }
+        //hooking end
+            
         public static Bitmap PrintWindow(IntPtr hwnd)
         {
             Rectangle rc = Rectangle.Empty;
@@ -269,12 +286,14 @@ namespace bo_macro
             }            
         }
         private void loop()
-        {
-            SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);
-            string filePath = "*50 img\\";
+        {            
             while (true)
             {
+                if (!loop_thread)
+                    continue;
                 //image search algorhtm
+                SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);
+                string filePath = "*50 img\\";
                 Thread.Sleep(2000);
 
                 ShowWindowAsync(hwnd, 1);
@@ -330,21 +349,14 @@ namespace bo_macro
                 connectThread.Abort();
             if (loopThread.IsAlive == true)
                 loopThread.Abort();
+            UnHook();
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
+
             switch(e.KeyCode)
             {
-                case Keys.F5:
-                    if (loopThread.IsAlive == true)
-                    {
-                        loopThread.Abort();
-                        loopThread = new Thread(new ThreadStart(loop));
-                    }                   
-                    else
-                        loopThread.Start();
-                    break;
                 default:
                     //nothing;
                     break;
