@@ -69,11 +69,12 @@ namespace bo_macro
         Thread connectThread;
         Thread loopThread;
         public delegate void DelegateStatusText(string strText);
-        public delegate void Delegatecall_loop_thread();
+        public delegate void DelegateSet_New_Drop();
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x100;
         public static bool loop_thread=false;
+        public static bool in_battle = false;
         private LowLevelKeyboardProc _proc = hookProc;
         private static IntPtr hhook = IntPtr.Zero;
 
@@ -89,8 +90,10 @@ namespace bo_macro
             loopThread.Start();
             SetHook();
         }
+
         private void button1_Click(object sender, EventArgs e)
         {
+            //testing set
             ShowWindowAsync(hwnd, 1);
             SetWindowPos(hwnd, 0, 0, 0, 1280, 750, 0x2);
 
@@ -184,6 +187,7 @@ namespace bo_macro
         }
         //hooking end
             
+        //print window setting
         public static Bitmap PrintWindow(IntPtr hwnd)
         {
             Rectangle rc = Rectangle.Empty;
@@ -221,7 +225,6 @@ namespace bo_macro
             }
             return target;
         }
-
         public static String[] UseImageSearch(string imgPath,IntPtr hwnd)
         {
             /*int right = Screen.PrimaryScreen.WorkingArea.Right;
@@ -246,6 +249,7 @@ namespace bo_macro
             return data;
         }
 
+        //invoke list
         private void setStatus(string text)
         {
             if(currentStatus.InvokeRequired)
@@ -258,11 +262,27 @@ namespace bo_macro
                 currentStatus.Text = text;
             }
         }
+        private void set_new_drop()
+        {
+            if (currentStatus.InvokeRequired)
+            {
+                var d = new DelegateSet_New_Drop(set_new_drop);
+                currentStatus.Invoke(d, new object[] { });
+            }
+            else
+            {
+                drop_ship_val.Text = (Int32.Parse(drop_ship_val.Text) - 1).ToString();
+            }
+        }
+        //invoke end
+
+        //thread list
         private void connect()
         {
+            //connectThread
             while(true)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(40);
                 //string test = "蒼藍の誓い-ブルーオースWindows版";
                 //int hwnds = FindWindow(null, test);
                 int hwnds = FindWindow("UnityWndClass", null);
@@ -284,29 +304,34 @@ namespace bo_macro
                 }
                 
             }            
-        }
+        }        
         private void loop()
         {            
+            //loopthread(macro Thread);
             while (true)
             {
                 if (!loop_thread)
+                {
+                    Thread.Sleep(1500);
                     continue;
+                }
+                Thread.Sleep(1500);
+                ShowWindowAsync(hwnd, 1);
+                SetForegroundWindow(hwnd);
+
                 //image search algorhtm
                 SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);
                 string filePath = "*50 img\\";
-                Thread.Sleep(2000);
-
-                ShowWindowAsync(hwnd, 1);
-                SetForegroundWindow(hwnd);
-                //Thread.Sleep(40);
-                try
+                Thread.Sleep(40);
+                if(in_battle)
                 {
+                    //전투화면
                     string[] search = null;
-                    String FolderName = "img";
+                    String FolderName = "img/battle";
                     System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(FolderName);
                     foreach (System.IO.FileInfo File in di.GetFiles())
                     {
-                        if (File.Extension.ToLower().CompareTo(".png") == 0)
+                        if (File.Extension.ToLower().CompareTo(".png") == 0 || File.Extension.ToLower().CompareTo(".jpg") == 0)
                         {
                             String FileNameOnly = File.Name.Substring(0, File.Name.Length);
                             //String FullFileName = File.FullName;
@@ -319,7 +344,22 @@ namespace bo_macro
                         }
                     }
                     if (search == null)
-                        continue;
+                    {
+                        //new_drop_check
+                        Bitmap cap = PrintWindow(hwnd);
+                        RECT brt;
+                        GetWindowRect(hwnd, out brt);                        
+                        cap = crop(cap, new Rectangle(200, 130, 30, 270));      //new ship
+                        var ocr = new TesseractEngine("./tessdata", "jpn", EngineMode.Default);
+                        var texts = ocr.Process(cap);
+                        if(texts.GetText().Equals("&&"))
+                        {
+                            set_new_drop();
+                        }
+                        SetCursorPos((brt.Top + brt.Bottom) / 2, (brt.Left + brt.Right) / 2);
+                        SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
+                        SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
+                    }
                     else
                     {
                         int[] search_ = new int[search.Length];
@@ -331,6 +371,79 @@ namespace bo_macro
                         SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
                         SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
                     }
+                    continue;
+                }
+                //통상화면
+                if(min_oil_checkBox.Checked)
+                {
+                    //oil_check
+                    if(min_oil_val.Text.Equals(""))
+                    {
+                        MessageBox.Show("최저연료를 입력되지 않았습니다.");
+                        loop_thread = false;
+                        continue;
+                    }
+                    Bitmap cap = PrintWindow(hwnd);
+                    RECT brt;
+                    GetWindowRect(hwnd, out brt);
+                    cap = crop(cap, new Rectangle(770, 30, 80, 50));    //oil check
+                    var ocr = new TesseractEngine("./tessdata", "eng", EngineMode.TesseractAndCube);
+                    var texts = ocr.Process(cap);
+                    if(Int32.Parse(min_oil_val.Text) > Int32.Parse(texts.GetText()))
+                    {
+                        loop_thread = false;
+                        continue;
+                    }
+                }
+                if(drop_ship_checkBox.Checked)
+                {
+                    //drop_ship_check
+                    if(drop_ship_val.Text == "0")
+                    {
+                        loop_thread = false;
+                        continue;
+                    }
+                    else if(drop_ship_val.Text.Equals(""))
+                    {
+                        MessageBox.Show("드랍수를 입력하지 않았습니다.");
+                        loop_thread = false;
+                        continue;
+                    }
+                }
+                try
+                {
+                    string[] search = null;
+                    MessageBox.Show(select_stage.Text);
+                    if(select_stage.Text.Equals(""))
+                    {
+                        MessageBox.Show("해역이 선택되지 않았습니다.");
+                        loop_thread = false;
+                        continue;
+                    }
+                    filePath += "stage/";
+                    string temp = filePath + select_stage.Text;     //stage select
+                    string temp2 = filePath + "start.png";          //start button
+                    search = UseImageSearch(temp, hwnd);
+                    if (search == null)
+                    {
+                        search = UseImageSearch(temp2, hwnd);
+                        if (search == null)
+                            continue;
+                        else
+                        {
+                            in_battle = true;
+                        }
+                    }
+
+                    int[] search_ = new int[search.Length];
+                    for (int j = 0; j < search.Length; j++)
+                    {
+                        search_[j] = Convert.ToInt32(search[j]);
+                    }
+                    SetCursorPos(search_[1] + (search_[3] / 2), search_[2] + (search_[4] / 2));
+                    SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
+                    SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
+
                 }
                 catch
                 {
@@ -339,10 +452,41 @@ namespace bo_macro
                 finally
                 {
 
-                }
-                         
+                }                         
             }
         }
+        //thread end
+
+        //key input  
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {            
+            switch(e.KeyCode)
+            {
+                default:
+                    //nothing;
+                    break;
+            }
+        }
+
+        private void min_oil_val_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            //숫자만 입력되도록 필터링
+            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))    //숫자와 백스페이스를 제외한 나머지를 바로 처리
+            {
+                e.Handled = true;
+            }
+        }
+        private void drop_ship_val_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            //숫자만 입력되도록 필터링
+            if (!(char.IsDigit(e.KeyChar) || e.KeyChar == Convert.ToChar(Keys.Back)))    //숫자와 백스페이스를 제외한 나머지를 바로 처리
+            {
+                e.Handled = true;
+            }
+        }
+        //key input end
+
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (connectThread.IsAlive == true)
@@ -350,17 +494,6 @@ namespace bo_macro
             if (loopThread.IsAlive == true)
                 loopThread.Abort();
             UnHook();
-        }
-
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-
-            switch(e.KeyCode)
-            {
-                default:
-                    //nothing;
-                    break;
-            }
         }
     }
 }
