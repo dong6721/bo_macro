@@ -9,7 +9,7 @@ Description:
 3. 드랍함정 일정 나올때까지 반복
 
 Current Update:
-2020.05.08 : 
-Image Searching, Mouse Event , Tesseract Testing
-2020.05.15 : 
-기름일정치 이하 testing,드랍함 일정치 testing
+2020.05.08 : ;
+Image Searching, Mouse Event , Tesseract Testing;
+2020.05.15 : ;
+기름일정치 이하 testing,드랍함 일정치 testing;
