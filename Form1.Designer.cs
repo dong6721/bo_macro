@@ -155,6 +155,7 @@
             this.min_oil_checkBox.Size = new System.Drawing.Size(15, 14);
             this.min_oil_checkBox.TabIndex = 14;
             this.min_oil_checkBox.UseVisualStyleBackColor = true;
+            this.min_oil_checkBox.CheckedChanged += new System.EventHandler(this.min_oil_checkBox_CheckedChanged);
             // 
             // drop_ship_checkBox
             // 
@@ -164,6 +165,7 @@
             this.drop_ship_checkBox.Size = new System.Drawing.Size(15, 14);
             this.drop_ship_checkBox.TabIndex = 15;
             this.drop_ship_checkBox.UseVisualStyleBackColor = true;
+            this.drop_ship_checkBox.CheckedChanged += new System.EventHandler(this.drop_ship_checkBox_CheckedChanged);
             // 
             // label4
             // 

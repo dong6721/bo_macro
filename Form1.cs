@@ -70,6 +70,7 @@ namespace bo_macro
         Thread loopThread;
         public delegate void DelegateStatusText(string strText);
         public delegate void DelegateSet_New_Drop();
+        public delegate void DelegateSet_Value();
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x100;
@@ -77,6 +78,11 @@ namespace bo_macro
         public static bool in_battle = false;
         private LowLevelKeyboardProc _proc = hookProc;
         private static IntPtr hhook = IntPtr.Zero;
+        public static bool oil_check = false;
+        public static bool drop_check = false;
+        public static string oil_val;
+        public static string drop_val;
+        public static string stage_val;
 
         public Form1()
         {
@@ -274,6 +280,42 @@ namespace bo_macro
                 drop_ship_val.Text = (Int32.Parse(drop_ship_val.Text) - 1).ToString();
             }
         }
+        private void set_value()
+        {
+            if(currentStatus.InvokeRequired)
+            {
+                var d = new DelegateSet_Value(set_value);
+                currentStatus.Invoke(d, new object[] { });
+            }
+            else
+            {
+                oil_val = min_oil_val.Text;
+                drop_val = drop_ship_val.Text;
+                stage_val = select_stage.Text;
+                min_oil_val.Enabled = false;
+                drop_ship_val.Enabled = false;
+                select_stage.Enabled = false;
+                min_oil_checkBox.Enabled = false;
+                drop_ship_checkBox.Enabled = false;
+
+            }
+        }
+        private void set_unlock()
+        {
+            if (currentStatus.InvokeRequired)
+            {
+                var d = new DelegateSet_Value(set_unlock);
+                currentStatus.Invoke(d, new object[] { });
+            }
+            else
+            {
+                min_oil_val.Enabled = true;
+                drop_ship_val.Enabled = true;
+                select_stage.Enabled = true;
+                min_oil_checkBox.Enabled = true;
+                drop_ship_checkBox.Enabled = true;
+            }
+        }
         //invoke end
 
         //thread list
@@ -312,10 +354,12 @@ namespace bo_macro
             {
                 if (!loop_thread)
                 {
+                    set_unlock();
                     Thread.Sleep(1500);
                     continue;
-                }
+                }            
                 Thread.Sleep(1500);
+                set_value();
                 ShowWindowAsync(hwnd, 1);
                 SetForegroundWindow(hwnd);
 
@@ -374,12 +418,12 @@ namespace bo_macro
                     continue;
                 }
                 //통상화면
-                if(min_oil_checkBox.Checked)
+                if(oil_check)
                 {
                     //oil_check
-                    if(min_oil_val.Text.Equals(""))
+                    if(oil_val.Equals(""))
                     {
-                        MessageBox.Show("최저연료를 입력되지 않았습니다.");
+                        MessageBox.Show("최저연료가 입력되지 않았습니다.");
                         loop_thread = false;
                         continue;
                     }
@@ -389,21 +433,21 @@ namespace bo_macro
                     cap = crop(cap, new Rectangle(770, 30, 80, 50));    //oil check
                     var ocr = new TesseractEngine("./tessdata", "eng", EngineMode.TesseractAndCube);
                     var texts = ocr.Process(cap);
-                    if(Int32.Parse(min_oil_val.Text) > Int32.Parse(texts.GetText()))
+                    if(Int32.Parse(oil_val) > Int32.Parse(texts.GetText()))
                     {
                         loop_thread = false;
                         continue;
                     }
                 }
-                if(drop_ship_checkBox.Checked)
+                if(drop_check)
                 {
                     //drop_ship_check
-                    if(drop_ship_val.Text == "0")
+                    if(drop_val.Equals("0"))
                     {
                         loop_thread = false;
                         continue;
                     }
-                    else if(drop_ship_val.Text.Equals(""))
+                    else if(drop_val.Equals(""))
                     {
                         MessageBox.Show("드랍수를 입력하지 않았습니다.");
                         loop_thread = false;
@@ -413,15 +457,14 @@ namespace bo_macro
                 try
                 {
                     string[] search = null;
-                    MessageBox.Show(select_stage.Text);
-                    if(select_stage.Text.Equals(""))
+                    if(stage_val.Equals(""))
                     {
                         MessageBox.Show("해역이 선택되지 않았습니다.");
                         loop_thread = false;
                         continue;
                     }
                     filePath += "stage/";
-                    string temp = filePath + select_stage.Text;     //stage select
+                    string temp = filePath + stage_val;     //stage select
                     string temp2 = filePath + "start.png";          //start button
                     search = UseImageSearch(temp, hwnd);
                     if (search == null)
@@ -443,7 +486,6 @@ namespace bo_macro
                     SetCursorPos(search_[1] + (search_[3] / 2), search_[2] + (search_[4] / 2));
                     SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
                     SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
-
                 }
                 catch
                 {
@@ -494,6 +536,15 @@ namespace bo_macro
             if (loopThread.IsAlive == true)
                 loopThread.Abort();
             UnHook();
+        }
+        private void min_oil_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            oil_check = !oil_check;
+        }
+
+        private void drop_ship_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            drop_check = !drop_check;
         }
     }
 }
