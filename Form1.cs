@@ -103,16 +103,16 @@ namespace bo_macro
             ShowWindowAsync(hwnd, 1);
             SetWindowPos(hwnd, 0, 0, 0, 1280, 750, 0x2);
 
-            /*Bitmap cap = PrintWindow(hwnd);
+            Bitmap cap = PrintWindow(hwnd);
             RECT brt;
             GetWindowRect(hwnd, out brt);
             //cap = crop(cap, new Rectangle(770, 30, 80, 50));
-            cap = crop(cap, new Rectangle(200, 130, 30, 270));      //new 함선
+            //cap = crop(cap, new Rectangle(200, 130, 30, 270));      //new 함선
             var ocr = new TesseractEngine("./tessdata", "jpn", EngineMode.Default);
             var texts = ocr.Process(cap);
             MessageBox.Show(texts.GetText());
             Form2 newForm = new Form2(cap);
-            newForm.Show();*/
+            newForm.Show();
 
             //set window position setting
             /*ShowWindowAsync(hwnd, 1);
@@ -297,7 +297,6 @@ namespace bo_macro
                 select_stage.Enabled = false;
                 min_oil_checkBox.Enabled = false;
                 drop_ship_checkBox.Enabled = false;
-
             }
         }
         private void set_unlock()
@@ -314,6 +313,7 @@ namespace bo_macro
                 select_stage.Enabled = true;
                 min_oil_checkBox.Enabled = true;
                 drop_ship_checkBox.Enabled = true;
+                in_battle = false;
             }
         }
         //invoke end
@@ -364,20 +364,22 @@ namespace bo_macro
                 SetForegroundWindow(hwnd);
 
                 //image search algorhtm
-                SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);
+                //SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);
                 string filePath = "*50 img\\";
                 Thread.Sleep(40);
                 if(in_battle)
                 {
                     //전투화면
                     string[] search = null;
+                    filePath+= "battle/";
                     String FolderName = "img/battle";
                     System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(FolderName);
+                    String FileNameOnly = "";
                     foreach (System.IO.FileInfo File in di.GetFiles())
                     {
                         if (File.Extension.ToLower().CompareTo(".png") == 0 || File.Extension.ToLower().CompareTo(".jpg") == 0)
                         {
-                            String FileNameOnly = File.Name.Substring(0, File.Name.Length);
+                            FileNameOnly = File.Name.Substring(0, File.Name.Length);
                             //String FullFileName = File.FullName;
                             string temp = filePath + FileNameOnly;
                             search = UseImageSearch(temp, hwnd);
@@ -393,19 +395,25 @@ namespace bo_macro
                         Bitmap cap = PrintWindow(hwnd);
                         RECT brt;
                         GetWindowRect(hwnd, out brt);                        
-                        cap = crop(cap, new Rectangle(200, 130, 30, 270));      //new ship
+                        Bitmap ship_cap = crop(cap, new Rectangle(200, 130, 30, 270));      //new ship
                         var ocr = new TesseractEngine("./tessdata", "jpn", EngineMode.Default);
-                        var texts = ocr.Process(cap);
+                        var texts = ocr.Process(ship_cap);
                         if(texts.GetText().Equals("&&"))
                         {
                             set_new_drop();
                         }
-                        SetCursorPos((brt.Top + brt.Bottom) / 2, (brt.Left + brt.Right) / 2);
+                        SetCursorPos(brt.Left + 1190,brt.Top + 700);
                         SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
                         SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
                     }
                     else
                     {
+                        //auto Button,drop_ship_unlock button,end check button
+                        if(FileNameOnly.Equals("end.PNG"))
+                        {
+                            in_battle = false;
+                            continue;
+                        }
                         int[] search_ = new int[search.Length];
                         for (int j = 0; j < search.Length; j++)
                         {
@@ -464,7 +472,7 @@ namespace bo_macro
                         continue;
                     }
                     filePath += "stage/";
-                    string temp = filePath + stage_val;     //stage select
+                    string temp = filePath + stage_val + ".png";     //stage select
                     string temp2 = filePath + "start.png";          //start button
                     search = UseImageSearch(temp, hwnd);
                     if (search == null)
