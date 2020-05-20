@@ -349,7 +349,7 @@ namespace bo_macro
         }        
         private void loop()
         {            
-            //loopthread(macro Thread);
+            //loopthread:macro Thread;
             while (true)
             {
                 if (!loop_thread)
@@ -360,11 +360,12 @@ namespace bo_macro
                 }            
                 Thread.Sleep(1500);
                 set_value();
+                SetWindowPos(hwnd, 0, 0, 0, 1280, 750, 2);
                 ShowWindowAsync(hwnd, 1);
                 SetForegroundWindow(hwnd);
 
                 //image search algorhtm
-                //SetWindowPos(hwnd, 1, 0, 0, 1280, 750, 2);
+                
                 string filePath = "*50 img\\";
                 Thread.Sleep(40);
                 if(in_battle)
@@ -472,7 +473,7 @@ namespace bo_macro
                         continue;
                     }
                     filePath += "stage/";
-                    string temp = filePath + stage_val + ".png";     //stage select
+                    string temp = filePath + stage_val + ".png";     //stage select                    
                     string temp2 = filePath + "start.png";          //start button
                     search = UseImageSearch(temp, hwnd);
                     if (search == null)
@@ -512,6 +513,10 @@ namespace bo_macro
         {            
             switch(e.KeyCode)
             {
+                case Keys.F1:
+                    Form3 newForm = new Form3();
+                    newForm.Show();
+                    break;
                 default:
                     //nothing;
                     break;

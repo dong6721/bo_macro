@@ -39,11 +39,12 @@
             this.min_oil_checkBox = new System.Windows.Forms.CheckBox();
             this.drop_ship_checkBox = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(18, 165);
+            this.button1.Location = new System.Drawing.Point(11, 143);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
@@ -81,7 +82,15 @@
             "3-1",
             "3-2",
             "3-3",
-            "3-4"});
+            "3-4",
+            "4-1",
+            "4-2",
+            "4-3",
+            "4-4",
+            "5-1",
+            "5-2",
+            "5-3",
+            "5-4"});
             this.select_stage.Location = new System.Drawing.Point(151, 24);
             this.select_stage.Name = "select_stage";
             this.select_stage.Size = new System.Drawing.Size(121, 22);
@@ -176,12 +185,23 @@
             this.label4.TabIndex = 16;
             this.label4.Text = "시작,종료:<F5>";
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.ForeColor = System.Drawing.SystemColors.ButtonFace;
+            this.label5.Location = new System.Drawing.Point(12, 179);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(74, 12);
+            this.label5.TabIndex = 17;
+            this.label5.Text = "도움말:<F1>";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.ClientSize = new System.Drawing.Size(284, 200);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.drop_ship_checkBox);
             this.Controls.Add(this.min_oil_checkBox);
@@ -220,6 +240,7 @@
         private System.Windows.Forms.CheckBox min_oil_checkBox;
         private System.Windows.Forms.CheckBox drop_ship_checkBox;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
     }
 }
 
