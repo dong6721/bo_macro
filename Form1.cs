@@ -357,7 +357,7 @@ namespace bo_macro
                     set_unlock();
                     Thread.Sleep(1500);
                     continue;
-                }            
+                }
                 Thread.Sleep(1500);
                 set_value();
                 SetWindowPos(hwnd, 0, 0, 0, 1280, 750, 2);
@@ -393,7 +393,7 @@ namespace bo_macro
                     if (search == null)
                     {
                         //new_drop_check
-                        Bitmap cap = PrintWindow(hwnd);
+                        /*Bitmap cap = PrintWindow(hwnd);
                         RECT brt;
                         GetWindowRect(hwnd, out brt);                        
                         Bitmap ship_cap = crop(cap, new Rectangle(200, 130, 30, 270));      //new ship
@@ -402,7 +402,9 @@ namespace bo_macro
                         if(texts.GetText().Equals("&&"))
                         {
                             set_new_drop();
-                        }
+                        }*/
+                        RECT brt;
+                        GetWindowRect(hwnd, out brt);
                         SetCursorPos(brt.Left + 1190,brt.Top + 700);
                         SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
                         SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
@@ -414,6 +416,10 @@ namespace bo_macro
                         {
                             in_battle = false;
                             continue;
+                        }
+                        else if(FileNameOnly.Equals("drop_ship_unlock.PNG") &&drop_check)
+                        {
+                            set_new_drop();
                         }
                         int[] search_ = new int[search.Length];
                         for (int j = 0; j < search.Length; j++)
@@ -473,7 +479,7 @@ namespace bo_macro
                         continue;
                     }
                     filePath += "stage/";
-                    string temp = filePath + stage_val + ".png";     //stage select                    
+                    string temp = filePath + stage_val + ".png";     //stage select
                     string temp2 = filePath + "start.png";          //start button
                     search = UseImageSearch(temp, hwnd);
                     if (search == null)

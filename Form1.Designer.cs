@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.button1 = new System.Windows.Forms.Button();
             this.currentStatus = new System.Windows.Forms.Label();
             this.select_stage = new System.Windows.Forms.ComboBox();
@@ -213,6 +214,7 @@
             this.Controls.Add(this.select_stage);
             this.Controls.Add(this.currentStatus);
             this.Controls.Add(this.button1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.MaximizeBox = false;
             this.Name = "Form1";
