@@ -446,13 +446,18 @@ namespace bo_macro
                     RECT brt;
                     GetWindowRect(hwnd, out brt);
                     cap = crop(cap, new Rectangle(770, 30, 80, 50));    //oil check
-                    var ocr = new TesseractEngine("./tessdata", "eng", EngineMode.TesseractAndCube);
-                    var texts = ocr.Process(cap);
-                    if(Int32.Parse(oil_val) > Int32.Parse(texts.GetText()))
+                    try
                     {
-                        loop_thread = false;
-                        continue;
+                        var ocr = new TesseractEngine("./tessdata", "eng", EngineMode.TesseractAndCube);
+                        var texts = ocr.Process(cap);
+                        if (Int32.Parse(oil_val) > Int32.Parse(texts.GetText()))
+                        {
+                            loop_thread = false;
+                            continue;
+                        }
                     }
+                    catch { }
+                   
                 }
                 if(drop_check)
                 {
