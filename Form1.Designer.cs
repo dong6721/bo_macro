@@ -92,7 +92,9 @@
             "5-1",
             "5-2",
             "5-3",
-            "5-4"});
+            "5-4",
+            "custom",
+            "custom2"});
             this.select_stage.Location = new System.Drawing.Point(151, 24);
             this.select_stage.Name = "select_stage";
             this.select_stage.Size = new System.Drawing.Size(121, 22);
