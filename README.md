@@ -1,19 +1,26 @@
-# Blue_oath-macro-(ongoing)
+# Blue_oath-macro-(jp server)
+
+## Blue_oath,푸른맹세 해역 자동순환 Macro
 
 
-Blue_oath,푸른맹세 해역 자동순환 Macro
+### 기능
+> 특정 해역 반복 순환
+> > 일정 연료 도달시 정지   
+> > 드랍함 일정 회수 드랍 시 정지   
+> > custom 지역 설정 가능   
 
-Description:
-1. 일정 횟수 반복 
-2. 기름 일정치 이하가 될때까지 반복 
-3. 드랍함정 일정 나올때까지 반복
+자세한 사항은 도움말
 
-Current Update
-2020.05.08 
+### How to using tool
+* initial screen
+![Alt text](/init.PNG)
+1. execute "bo_macro.exe"
+2. set game screen to init screen
+3. set macro's stage
+4. push "F5" button
++ do not use mouse, this is mouse click base program.
 
-Image Searching, Mouse Event , Tesseract Testing
+### Download
 
-2020.05.15 
-
-기름일정치 이하 testing,드랍함 일정치 testing
+[Download](https://github.com/dong6721/bo_macro/releases/download/1.0(Beta)/bo_macro.zip)
 
