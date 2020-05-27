@@ -77,7 +77,6 @@
             this.Name = "Form3";
             this.Opacity = 0.85D;
             this.ShowIcon = false;
-            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "도움말";
             this.Load += new System.EventHandler(this.Form3_Load);

@@ -403,6 +403,7 @@ namespace bo_macro
                         {
                             set_new_drop();
                         }*/
+                        //auto clicking
                         RECT brt;
                         GetWindowRect(hwnd, out brt);
                         SetCursorPos(brt.Left + 1190,brt.Top + 700);
@@ -436,10 +437,10 @@ namespace bo_macro
                 if(oil_check)
                 {
                     //oil_check
-                    if(oil_val.Equals(""))
+                    if (oil_val.Equals(""))
                     {
-                        MessageBox.Show("최저연료가 입력되지 않았습니다.");
                         loop_thread = false;
+                        MessageBox.Show("최저연료가 입력되지 않았습니다.");                        
                         continue;
                     }
                     Bitmap cap = PrintWindow(hwnd);
@@ -450,14 +451,20 @@ namespace bo_macro
                     {
                         var ocr = new TesseractEngine("./tessdata", "eng", EngineMode.TesseractAndCube);
                         var texts = ocr.Process(cap);
-                        if (Int32.Parse(oil_val) > Int32.Parse(texts.GetText()))
+                        if (texts.GetText().Equals(""))
+                        {
+                            //nothing
+                        }
+                        else if (Int32.Parse(oil_val) > Int32.Parse(texts.GetText()))
                         {
                             loop_thread = false;
                             continue;
                         }
                     }
-                    catch { }
-                   
+                    catch
+                    {
+                        //tessract error
+                    }                 
                 }
                 if(drop_check)
                 {
@@ -494,16 +501,26 @@ namespace bo_macro
                             continue;
                         else
                         {
+                            //temp2
                             in_battle = true;
+                            int[] search_ = new int[search.Length];
+                            for (int j = 0; j < search.Length; j++)
+                            {
+                                search_[j] = Convert.ToInt32(search[j]);
+                            }
+                            SetCursorPos(search_[1] + (search_[3] / 2), search_[2] + (search_[4] / 2));
                         }
                     }
-
-                    int[] search_ = new int[search.Length];
-                    for (int j = 0; j < search.Length; j++)
+                    else
                     {
-                        search_[j] = Convert.ToInt32(search[j]);
-                    }
-                    SetCursorPos(search_[1] + (search_[3] / 2), search_[2] + (search_[4] / 2));
+                        //select stage
+                        int[] search_ = new int[search.Length];
+                        for (int j = 0; j < search.Length; j++)
+                        {
+                            search_[j] = Convert.ToInt32(search[j]);
+                        }
+                        SetCursorPos(search_[1] + (search_[3] / 2) - 100, search_[2] + (search_[4] / 2));
+                    }                   
                     SendMessage(hwnd, 0x0201, (IntPtr)0x00000001, (IntPtr)0);
                     SendMessage(hwnd, 0x0202, (IntPtr)0x00000000, (IntPtr)0);
                 }
